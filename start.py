@@ -18,14 +18,21 @@ def namespace_check(namespace):
     else:
         print(f"Namespace '{namespace}' is already available.")
 
+def get_deployment_status(deployment_name, namespace):
+    cmd = f"kubectl get deployment {deployment_name} -n {namespace}"
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    if result.returncode == 0:
+        output_lines = result.stdout.split('\n')
+        for line in output_lines:
+            if deployment_name in line:
+                return line.split()[3] if line else 0
+    return 0
+
 def deployment_status(deployment_name, namespace):
     print(f"###############status of {deployment_name} service ##############")
     namespace = namespace.lower()
     os.system('sleep 15')
-    deployment_status = f"kubectl get deployment {deployment_name} -n {namespace} | grep {deployment_name}"
-    deployment_status= deployment_status + " | awk '{print $4}'"
-    status=subprocess.check_output(deployment_status,shell=True)
-    status = int(status.decode("utf-8"))
+    status=get_deployment_status(deployment_name, namespace)
     if status==1:
         print(f"{deployment_name} Service is up and running")
         return 1
